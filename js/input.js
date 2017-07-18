@@ -24,6 +24,16 @@
 
         pressedKeys[key] = status;
     }
+    
+    function setClick(event, status) {
+        var buttonCode = event.button;
+        var key;
+        if(buttonCode == 0) key = 'CLICK';
+        else key = String.fromCharCode(buttonCode);
+        pressedKeys[key] = status;
+    }
+    
+    document.onmousedown = function(){return false};
 
     document.addEventListener('keydown', function(e) {
         setKey(e, true);
@@ -31,6 +41,14 @@
 
     document.addEventListener('keyup', function(e) {
         setKey(e, false);
+    });
+    
+    document.addEventListener('mousedown', function(e) {
+        setClick(e, true);
+    });
+
+    document.addEventListener('mouseup', function(e) {
+        setClick(e, false);
     });
 
     window.addEventListener('blur', function() {

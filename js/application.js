@@ -26,12 +26,29 @@ var scoreEl = document.getElementById('score');
 
 var enemySpeed = 40;
 var playerSpeed = 200;
-var bulletSpeed = 500;
+var bulletSpeed = 600;
 
 var player = {
     angle: 4.71,
     sprite: new Sprite('img/player.png', [0, 0], [44, 22], [canvas.width/2, canvas.height/2], 5, [0, 2, 1, 2])
 };
+
+var xMousePos;
+var yMousePos;
+
+canvas.onmousemove = function(e) {
+        xMousePos = e.offsetX;
+        yMousePos = e.offsetY;
+}
+
+canvas.style.cursor = 'crosshair';
+
+var shotSound = loadAudio('audio/shot.wav');
+var themeSound = loadAudio('audio/theme.wav', 0.3);
+var deathEnemySound = loadAudio('audio/death_enemy.wav');
+var gameOverSound = loadAudio('audio/game_over.wav', 0.5);
+themeSound.setLoop();
+
 
 function main() {
     var now = Date.now();
@@ -107,7 +124,6 @@ function update(dt) {
         });
     }
     
-    //checkPlayerBounds();
     checkCollisions();
     scoreEl.innerHTML = score;
 }
@@ -119,29 +135,30 @@ function specificRandomInteger(min, max) {
 }
 
 function handleInput(dt) {
+    
     if(input.isDown('DOWN') || input.isDown('s')) {
-        player.sprite.position[0] -= playerSpeed * dt * Math.cos(player.angle);
-        player.sprite.position[1] -= playerSpeed * dt * Math.sin(player.angle);
+        player.sprite.position[1] += playerSpeed * dt;
         player.sprite.update(dt);
     }
 
     if(input.isDown('UP') || input.isDown('w')) {
-        player.sprite.position[0] += playerSpeed * dt * Math.cos(player.angle);
-        player.sprite.position[1] += playerSpeed * dt * Math.sin(player.angle);
+        player.sprite.position[1] -= playerSpeed * dt;
         player.sprite.update(dt);
     }
 
     if(input.isDown('LEFT') || input.isDown('a')) {
-        player.angle -= playerSpeed/32 * dt;
+        player.sprite.position[0] -= playerSpeed * dt;
         player.sprite.update(dt);
     }
 
     if(input.isDown('RIGHT') || input.isDown('d')) {
-        player.angle += playerSpeed/32 * dt;
+        player.sprite.position[0] += playerSpeed * dt;
         player.sprite.update(dt);
     }
+
     
-    if(input.isDown('SPACE') && Date.now() - lastFire > 190) {
+    if((input.isDown('SPACE') || input.isDown('CLICK')) && Date.now() - lastFire > 290) {
+        shotSound.play();
         var alignment = 4;
         var x = player.sprite.position[0] + player.sprite.size[0] / 2 - alignment;
         alignment = 3;
@@ -153,6 +170,12 @@ function handleInput(dt) {
 }
 
 function updateEntities(dt){
+    
+    var xPlayer = player.sprite.position[0] + player.sprite.size[0]/2,
+        yPlayer = player.sprite.position[1] + player.sprite.size[1]/2;
+
+    player.angle = Math.atan2(yMousePos - yPlayer, xMousePos - xPlayer);
+    
     
     for(var i=0; i<bullets.length; i++) {
         var bullet = bullets[i];
@@ -178,11 +201,6 @@ function updateEntities(dt){
         if(!deathEnemies[i].sprite.done){
         deathEnemies[i].sprite.update(dt);
         }
-
-        /*if(deathEnemies[i].sprite.done) {
-            deathEnemies.splice(i, 1);
-            i--;
-        }*/
     }
     
 }
@@ -204,15 +222,11 @@ function collides(x, y, r, b, x2, y2, r2, b2) {
 }
 
 function boxCollides(pos, size, pos2, size2) {
-    var alignment = 52;
+    var alignment = 40;
     return collides(pos[0] + pos[0] / alignment, pos[1] + pos[1] / alignment,
                     pos[0] + size[0] - size[0] / alignment, pos[1] + size[1] - size[1] / alignment,
                     pos2[0] + pos2[0] / alignment, pos2[1] + pos2[1] / alignment,
                     pos2[0] + size2[0] - size2[0] / alignment, pos2[1] + size2[1] - size2[1] / alignment);
-    /*return collides(pos[0], pos[1],
-                    pos[0] + size[0], pos[1] + size[1],
-                    pos2[0], pos2[1],
-                    pos2[0] + size2[0], pos2[1] + size2[1]);*/
 }
 
 function checkCollisions() {
@@ -229,7 +243,8 @@ function checkCollisions() {
             if(boxCollides(pos, size, pos2, size2)) {
 
                 score += 10;
-
+                deathEnemySound.play();
+                
                 deathEnemies.push({
                     angle: enemies[i].angle,
                     sprite: new Sprite('img/enemy_death.png', [0, 0], [85, 57], pos, 14, [0, 1, 2, 3, 4, 5], 1, true)
@@ -284,7 +299,7 @@ function renderEntities(list){
 function renderEntity(entity){
     var dx = entity.sprite.position[0] + entity.sprite.size[0] / 2;
     var dy = entity.sprite.position[1] + entity.sprite.size[1] / 2;
-    var a = entity.angle;// * (Math.PI / 180);
+    var a = entity.angle;
     
     ctx.save();
     
@@ -303,6 +318,11 @@ function gameOver() {
     document.getElementById('game-over').style.display = 'block';
     document.getElementById('game-over-overlay').style.display = 'block';
     isGameOver = true;
+    
+    gameOverSound.play();
+    themeSound.stop();
+    deathEnemySound.stop();
+    shotSound.stop();
 }
 
 
@@ -316,8 +336,10 @@ function reset() {
     enemies = [];
     bullets = [];
     deathEnemies = [];
-    //enemies.push(enemy);
     
     player.angle = 4.71;
     player.sprite.position = [canvas.width / 2, canvas.height / 2];
+    
+    gameOverSound.stop();
+    themeSound.play();
 };
