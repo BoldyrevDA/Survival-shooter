@@ -1,2 +1,2 @@
 # Survival-shooter
-Mini Crimsonland (create with javascript and canvas)
+Mini-game created using javascript and canvas
