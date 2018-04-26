@@ -9,7 +9,11 @@ var requestAnimFrame = (function () {
         };
 })();
 
-var canvas = document.getElementById('canvas');
+var canvas = document.createElement("canvas");
+canvas.width = document.documentElement.clientWidth - 10;
+canvas.height =  document.documentElement.clientHeight >= 80? document.documentElement.clientHeight - 80 : document.documentElement.clientHeight;
+document.body.appendChild(canvas);
+
 var ctx = canvas.getContext('2d');
 var fieldPattern;
 var gameTime = 0;
@@ -43,10 +47,10 @@ canvas.onmousemove = function(e) {
 
 canvas.style.cursor = 'crosshair';
 
-var shotSound = loadAudio('audio/shot.wav');
-var themeSound = loadAudio('audio/theme.wav', 0.3);
-var deathEnemySound = loadAudio('audio/death_enemy.wav');
-var gameOverSound = loadAudio('audio/game_over.wav', 0.5);
+var shotSound = loadAudio(['audio/shot.wav']);
+var themeSound = loadAudio(['audio/theme.mp3', 'audio/theme.wav'], 0.3);
+var deathEnemySound = loadAudio(['audio/death_enemy.wav']);
+var gameOverSound = loadAudio(['audio/game_over.wav'], 0.5);
 themeSound.setLoop();
 
 
@@ -125,7 +129,6 @@ function update(dt) {
     }
     
     checkCollisions();
-    scoreEl.innerHTML = score;
 }
 
 function specificRandomInteger(min, max) {
@@ -240,10 +243,10 @@ function checkCollisions() {
             var pos2 = bullets[j].sprite.position;
             var size2 = bullets[j].sprite.size;
 
-            if(boxCollides(pos, size, pos2, size2)) {
-
+            if(boxCollides(pos, size, pos2, size2)) {  
                 score += 10;
                 deathEnemySound.play();
+                scoreEl.innerHTML = score;
                 
                 deathEnemies.push({
                     angle: enemies[i].angle,
@@ -342,4 +345,5 @@ function reset() {
     
     gameOverSound.stop();
     themeSound.play();
+    scoreEl.innerHTML = score;
 };

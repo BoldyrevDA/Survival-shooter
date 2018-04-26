@@ -1,7 +1,13 @@
  function loadAudio(arrayFiles, vol){
 		var audio = document.createElement("audio");
+        
+        for (let i = 0; i < arrayFiles.length; i++){
+            let source = document.createElement('source');
+            source.src = arrayFiles[i];
+            audio.appendChild(source);
+        }
      
-        audio.src = arrayFiles;
+        //audio.src = arrayFiles;
 		audio.volume = vol || 1;
 
 		var o = {

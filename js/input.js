@@ -33,6 +33,10 @@
         pressedKeys[key] = status;
     }
     
+    function setTouch(event, status) {
+        pressedKeys['CLICK'] = status;
+    }
+    
     document.onmousedown = function(){return false};
 
     document.addEventListener('keydown', function(e) {
@@ -49,6 +53,14 @@
 
     document.addEventListener('mouseup', function(e) {
         setClick(e, false);
+    });
+    
+    document.addEventListener('touchstart', function(e) {
+        setTouch(e, true);
+    });
+    
+    document.addEventListener('touchend', function(e) {
+        setTouch(e, false);
     });
 
     window.addEventListener('blur', function() {
